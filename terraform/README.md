@@ -39,7 +39,7 @@ This guide explains how to use Terraform to provision VMs on Proxmox.
     To target a specific resource, use the `-target` flag. For example, to plan only the bastion VM:
 
     ```bash
-    terraform plan -target=module.bastion_vm.proxmox_vm_qemu.vm
+    terraform plan -target=module.k3s-ubuntu-test.proxmox_vm_qemu.vm-cloudinit
     ```
 
 ## Disaster Recovery
