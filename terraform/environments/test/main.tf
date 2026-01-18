@@ -54,7 +54,7 @@ module "media-ubuntu-test" {
   pve_user                = local.pve_user
   pve_password            = local.pve_password
 
-  extra_disk_storage = "additional-storage" # Name of the Proxmox storage
+  extra_disk_storage = "vm-storage-new" # Name of the Proxmox storage
   extra_disk_size    = "10G"
 }
 
@@ -76,6 +76,6 @@ module "k3s-ubuntu-test" {
   pve_user                = local.pve_user
   pve_password            = local.pve_password
 
-  extra_disk_storage = "additional-storage" # Name of the Proxmox storage
+  extra_disk_storage = "vm-storage-new" # Name of the Proxmox storage
   extra_disk_size    = "10G"
 }

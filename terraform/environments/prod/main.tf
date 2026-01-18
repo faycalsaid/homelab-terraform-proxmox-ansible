@@ -54,7 +54,7 @@ module "media-ubuntu-prod" {
   pve_user                = local.pve_user
   pve_password            = local.pve_password
 
-  extra_disk_storage = "additional-storage" # Name of the Proxmox storage
+  extra_disk_storage = "vm-storage-new" # Name of the Proxmox storage
   extra_disk_size    = "300G"
 }
 
@@ -64,7 +64,7 @@ module "k3s-ubuntu-prod" {
   name        = "k3s-ubuntu-prod"
   target_node = local.target_node
   cores       = 4
-  memory      = 8192
+  memory      = 6144
   sockets     = 1
   disk_size   = "64G"
   ipconfig0   = "ip=192.168.1.162/24,gw=192.168.1.1"
