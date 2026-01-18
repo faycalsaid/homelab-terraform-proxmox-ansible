@@ -54,6 +54,28 @@ module "media-ubuntu-test" {
   pve_user                = local.pve_user
   pve_password            = local.pve_password
 
-  extra_disk_storage = "additional-storage" # Name of the Proxmox storage
+  extra_disk_storage = "vm-storage-new" # Name of the Proxmox storage
+  extra_disk_size    = "10G"
+}
+
+module "k3s-ubuntu-test" {
+  vmid        = 203
+  source      = "../../modules/proxmox-vm-ubuntu-24-cloudinit"
+  name        = "k3s-ubuntu-test"
+  target_node = local.target_node
+  cores       = 2
+  memory      = 2048
+  sockets     = 1
+  disk_size   = "16G"
+  ipconfig0   = "ip=192.168.1.172/24,gw=192.168.1.1"
+
+  ansible_public_key = tls_private_key.ansible.public_key_openssh
+
+  server_admin_public_key = local.server_admin_public_key
+  pve_host                = local.pve_host
+  pve_user                = local.pve_user
+  pve_password            = local.pve_password
+
+  extra_disk_storage = "vm-storage-new" # Name of the Proxmox storage
   extra_disk_size    = "10G"
 }

@@ -1,4 +1,4 @@
-![homelav-v1.drawio.png](homelav-v1.drawio.png)
+![homelav-v2.drawio.png](homelav-v1.drawio.png)
 
 # Homelab
 
@@ -63,3 +63,11 @@ The following services are managed by this repository:
 -   **Gluetun**: A VPN client container to route traffic through a VPN.
 
 For more details on each service, see the corresponding Ansible role's README.
+
+### ARR Stack Configuration
+
+- Configure arr applications through UI (The configuration as code is not yet implemented)
+    - Go to homelab page: `http://<bastion-server-ip>:3000`
+    - From there you have access to all the applications (Jellyfin, Radarr, Sonarr, etc)
+    - Configure each application (Jellyfin, Radarr, Sonarr, etc), here is some useful links to help you with the initial configuration:
+        - [arr stack](https://yams.media/config/)

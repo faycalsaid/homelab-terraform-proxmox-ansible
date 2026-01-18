@@ -1,15 +1,28 @@
-# .gitignore
+# IntelliJ IDEA project files
+.idea/
 
-# Terraform secret files
-terraform.tfvars
-*.auto.tfvars
+# Local .terraform directories
+**/.terraform/*
 
-# Terraform state files (also contain secrets!)
-terraform.tfstate
-terraform.tfstate.backup
+# Terraform state files (use remote backend instead)
+*.tfstate
+*.tfstate.*
 
-# Crash logs
+# Crash log files
 crash.log
+crash.*.log
 
-# Local Terraform directories
-.terraform/
+# Sensitive variable files (may contain secrets)
+*.tfvars
+!*.tfvars.example
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
