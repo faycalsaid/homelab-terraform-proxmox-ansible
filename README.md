@@ -1,4 +1,4 @@
-![homelav-v2.drawio.png](homelav-v1.drawio.png)
+![homelav-v2.drawio.png](homelav-v2.drawio.png)
 
 # Homelab
 
