@@ -14,7 +14,7 @@ all:
           ansible_become: true
 
     # K3s cluster definition (required by k3s-ansible collection)
-    k3s_cluster:
+    k3s-cluster:
       children:
         server:
           hosts:
