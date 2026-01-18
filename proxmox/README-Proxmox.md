@@ -2,6 +2,9 @@
 
 This document explains how to prepare Proxmox VE for automated VM deployment using **Cloud-Init templates** and how to **add external storage** for use with VMs or backups.
 
+## Proxmox Version
+
+- **Current Version:** Proxmox VE 9.x
 
 ## Table of Contents
 - [Create an Ubuntu Cloud-Init Template](#create-an-ubuntu-cloud-init-template)
@@ -186,6 +189,7 @@ You should now have only one device mounted on the folder (✅ Should show only 
 ```bash
 mount | grep additional-storage
 ```
+
 
 
 
