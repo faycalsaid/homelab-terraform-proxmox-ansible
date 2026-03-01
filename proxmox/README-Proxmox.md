@@ -10,9 +10,9 @@ This document explains how to prepare Proxmox VE for automated VM deployment usi
 - [Create an Ubuntu Cloud-Init Template](#create-an-ubuntu-cloud-init-template)
 - [Add External Disk as Proxmox Storage](#add-external-disk-as-proxmox-storage)
 - [Troubleshooting](#troubleshooting)
+    - [VM fails to start: "volume 'storage:VMID/disk.raw' does not exist"](#vm-fails-to-start-volume-storagevmiddiskraw-does-not-exist)
+    - [External USB disk disconnected (dock bumped / power cycled)](#external-usb-disk-disconnected-dock-bumped--power-cycled)
     - [Your external disk was unplugged or replugged, device name changed](#your-external-disk-was-unplugged-or-replugged-device-name-changed)
-        - [How to confirm this exact issue ?](#how-to-confirm-this-exact-issue-)
-        - [How to fix it ?](#how-to-fix-it-)
 
 # Create an Ubuntu Cloud-Init Template
 
@@ -148,46 +148,188 @@ Use it for multiple VMs.
 
 # Troubleshooting
 
+## VM fails to start: "volume 'storage:VMID/disk.raw' does not exist"
+
+This happens when a VM references a disk on an external storage, but Proxmox cannot find the volume. There are **two possible causes** — check them in order.
+
+**Example error:**
+```
+TASK ERROR: volume '<your-storage>:<VMID>/vm-<VMID>-disk-0.raw' does not exist
+```
+
+### Step 1: Check if the storage is mounted at all
+
+```bash
+mount | grep <your-mount-point>
+df -h | grep <your-mount-point>
+```
+
+**If the storage is NOT mounted** → the problem is the underlying disk, not the VM config. Jump to:
+- [External USB disk disconnected (dock bumped / power cycled)](#external-usb-disk-disconnected-dock-bumped--power-cycled)
+- [External disk unplugged or device name changed](#your-external-disk-was-unplugged-or-replugged-device-name-changed)
+
+**If the storage IS mounted** → continue below, the VM config reference is broken.
+
+### Step 2: Confirm the disk file physically exists
+
+```bash
+ls -lh <your-mount-point>/images/<VMID>/
+```
+You should see the `.raw` file (e.g. `vm-<VMID>-disk-0.raw`).
+
+### Step 3: Check the VM config
+
+```bash
+qm config <VMID> | grep -E "scsi|virtio|ide|unused"
+```
+If the disk slot (e.g. scsi1) is missing, or the disk shows up as `unused0`, that confirms the issue.
+
+### How to fix it ?
+
+Reattach the existing disk to the VM:
+```bash
+# Reattach the disk (adjust slot, storage name, VMID and disk name as needed)
+qm set <VMID> --scsi1 <your-storage>:<VMID>/vm-<VMID>-disk-0.raw
+
+# Rescan the VM to pick up the change
+qm rescan --vmid <VMID>
+```
+
+If the Cloud-Init drive was also removed, re-add it:
+```bash
+qm set <VMID> --ide2 local-lvm:cloudinit
+```
+
+Then start the VM:
+```bash
+qm start <VMID>
+```
+
+> ⚠️ **Root cause:** This typically happens when Terraform tries to update a VM that has a disk on renamed storage. The old storage name no longer matches, Terraform taints the resource, and the disk gets detached. The data is **not lost** — only the VM config reference is broken.
+
+---
+
+## External USB disk disconnected (dock bumped / power cycled)
+
+If your external HDD is connected via a USB docking station and you accidentally bump it or power-cycle the dock while Proxmox is running, the disk disconnects. After reconnecting, the mount is lost and the VM can't find its disk.
+
+**Proxmox UI may show the storage as "Active"** but with a suspiciously small size (e.g. your root FS size instead of the external disk size) — that's because the mount point directory still exists on the root filesystem, but the external disk is no longer mounted there.
+
+**Example symptoms:**
+```
+TASK ERROR: volume '<your-storage>:<VMID>/vm-<VMID>-disk-0.raw' does not exist
+```
+```bash
+mount | grep <your-mount-point>                  # returns nothing — disk is NOT mounted
+ls <your-mount-point>/images/<VMID>/             # empty — you're seeing root fs, not the disk
+```
+
+### How to confirm this exact issue ?
+
+1. Check the disk is detected but not mounted:
+   ```bash
+   lsblk                              # your disk should be visible with no MOUNTPOINT
+   mount | grep <your-mount-point>    # should return nothing
+   ```
+
+2. Check the disk has a valid filesystem:
+   ```bash
+   blkid /dev/sdX
+   # Should show: UUID="..." TYPE="ext4" (or your filesystem type)
+   ```
+
+3. The Proxmox storage directory exists but is empty (sitting on root fs):
+   ```bash
+   ls <your-mount-point>/images/<VMID>/
+   # Empty or "No such file or directory"
+   ```
+
+### How to fix it ?
+
+1. **Mount the disk:**
+   ```bash
+   mount -t ext4 /dev/sdX <your-mount-point>
+   ```
+   > Check `blkid` output to know whether the filesystem is on `/dev/sdX` directly or on a partition like `/dev/sdX1`.
+
+2. **Verify the disk files are back:**
+   ```bash
+   ls -lh <your-mount-point>/images/<VMID>/
+   # Should show: vm-<VMID>-disk-0.raw
+   df -h | grep <your-mount-point>
+   # Should now show the real disk size
+   ```
+
+3. **Start the VM** (from Proxmox UI or CLI):
+   ```bash
+   qm start <VMID>
+   ```
+
+That's it. The data is never lost — the disk just needs to be remounted.
+
+### Why does this happen ?
+
+Linux does **not** auto-remount USB disks after a disconnect/reconnect. `fstab` only runs at boot (`mount -a`). So when the dock gets bumped:
+1. Disk disconnects → Linux drops the mount
+2. Dock recovers → disk reappears as `/dev/sdX`
+3. But nobody calls `mount` → the mount point stays empty
+4. Proxmox still sees the storage as "Active" because the **directory** exists — it just shows root FS free space
+
+**Another common cause:** If you previously swapped the physical disk but forgot to update the UUID in `/etc/fstab`, the disk will **never** auto-mount on boot — `mount -a` silently fails because the old UUID doesn't exist anymore. The `nofail` option lets boot continue without error, hiding the problem until a VM tries to access the storage.
+
+**Always verify after a disk swap:**
+```bash
+blkid /dev/sdX               # actual UUID on the disk
+grep <your-mount-point> /etc/fstab   # UUID fstab expects
+# If they don't match → update fstab with the real UUID
+```
+
+> 💡 **Quick debug:** `mount | grep <your-mount-point>` — if empty, just remount and start the VM.
+
+> 💡 **Prevention:** Secure the USB docking station so it can't be accidentally bumped.
+
+---
+
 ## Your external disk was unplugged or replugged, device name changed
 
 ### How to confirm this exact issue ?
-Check if two devices are mounted on same folder (replace additional-storage with your mount folder name)
+Check if two devices are mounted on the same folder:
 ```bash
-mount | grep additional-storage
+mount | grep <your-mount-point>
 ```
 
 ❌ BAD (double mount)
 ```bash
-/dev/sda1 on /mnt/additional-storage
-/dev/sdd1 on /mnt/additional-storage
+/dev/sda1 on <your-mount-point>
+/dev/sdd1 on <your-mount-point>
 ```
 
 ✅ GOOD (only one)
 ```bash
-/dev/sdd1 on /mnt/additional-storage
+/dev/sdd1 on <your-mount-point>
 ```
 
 ### How to fix it ?
-Unmount both layers
+Unmount both layers:
 ```bash
-umount -f /mnt/additional-storage
+umount -f <your-mount-point>
 umount -f /dev/sda1 2>/dev/null
 umount -f /dev/sdd1 2>/dev/null
 ```
 
-Remove stale kernel mount reference
+Remove stale kernel mount reference:
 ```bash
 umount -l /dev/sda1 2>/dev/null
 ```
 
-Remount all from fstab
+Remount all from fstab:
 ```bash
 mount -a
 ```
 
-You should now have only one device mounted on the folder (✅ Should show only one device now.)
+Verify only one device is mounted (✅ Should show only one device now):
 ```bash
-mount | grep additional-storage
+mount | grep <your-mount-point>
 ```
 
 
