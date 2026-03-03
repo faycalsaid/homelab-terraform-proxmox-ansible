@@ -7,12 +7,11 @@ ssh_permit_root_login: "no"
 ufw_default_incoming: deny
 ufw_default_outgoing: allow
 
-# Tailscale
+# Tailscale (for remote access — does NOT restrict LAN SSH)
 tailscale_enabled: true
-tailscale_ssh_only: true
 tailscale_cidr: "100.64.0.0/10"
 
-# Ports to allow from Tailscale only (after locking down public SSH)
+# Ports to allow from Tailscale CIDR (for remote access when away from home)
 tailscale_allowed_ports:
   - { port: 22, proto: tcp }
   - { port: 80, proto: tcp }

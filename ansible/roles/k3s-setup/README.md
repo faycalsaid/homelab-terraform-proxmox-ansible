@@ -50,17 +50,16 @@ fail2ban_enabled: true
 
 ### Tailscale
 
-Installs Tailscale and optionally restricts SSH and service ports to the Tailscale network only.
+Installs Tailscale for remote access when away from home. Does **not** restrict LAN SSH — your private network stays fully accessible.
 
 ```yaml
 tailscale_enabled: true
-tailscale_ssh_only: true
 tailscale_cidr: "100.64.0.0/10"
 ```
 
 #### `tailscale_allowed_ports`
 
-Ports allowed from the Tailscale CIDR. Public SSH access is removed when `tailscale_ssh_only` is `true`.
+Ports allowed from the Tailscale CIDR for remote access. LAN SSH access is always preserved.
 
 ```yaml
 tailscale_allowed_ports:

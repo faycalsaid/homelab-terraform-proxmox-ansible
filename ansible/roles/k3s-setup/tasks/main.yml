@@ -118,22 +118,15 @@
           Then approve the device in your Tailscale admin console.
       when: tailscale_status.rc != 0
 
-- name: Restrict SSH to Tailscale network only
-  when: tailscale_enabled and tailscale_ssh_only
-  block:
-    - name: Allow ports from Tailscale CIDR only
-      community.general.ufw:
-        rule: allow
-        from_ip: "{{ tailscale_cidr }}"
-        port: "{{ item.port | string }}"
-        proto: "{{ item.proto }}"
-      loop: "{{ tailscale_allowed_ports }}"
+- name: Allow Tailscale CIDR for remote access
+  when: tailscale_enabled
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ tailscale_cidr }}"
+    port: "{{ item.port | string }}"
+    proto: "{{ item.proto }}"
+  loop: "{{ tailscale_allowed_ports }}"
 
-    - name: Remove public OpenSSH rule
-      community.general.ufw:
-        rule: allow
-        name: OpenSSH
-        delete: true
 
 # =============================================================================
 # 5. Helm
