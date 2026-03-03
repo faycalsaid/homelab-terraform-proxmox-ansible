@@ -1,3 +1,4 @@
+---
 - name: Load all group vars with Jinja interpolation
   hosts: all
   gather_facts: false

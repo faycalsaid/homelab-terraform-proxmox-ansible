@@ -15,10 +15,14 @@ This repository contains the infrastructure as code (IaC) to deploy and manage a
 │   │   ├── gluetun/
 │   │   ├── homepage/
 │   │   ├── install-docker/
+│   │   ├── k3s-setup/
 │   │   └── monitoring/
 │   ├── inventory/
 │   ├── playbooks/
 │   └── ...
+├── kubernetes/
+│   ├── MIGRATION-PLAN.md
+│   └── PROGRESS.md
 ├── proxmox/
 │   └── README-Proxmox.md
 └── terraform/
@@ -31,6 +35,7 @@ This repository contains the infrastructure as code (IaC) to deploy and manage a
 
 -   `ansible/`: Contains Ansible playbooks and roles for configuration management.
     -   `roles/`: Each role is responsible for a specific service (e.g., `arr-stack`, `monitoring`). See the README in each role's directory for more details.
+-   `kubernetes/`: K3s manifests and migration documentation for the Docker → K3s migration.
 -   `terraform/`: Contains Terraform configurations for infrastructure provisioning.
     -   `modules/`: Reusable Terraform modules (e.g., for creating a Proxmox VM).
     -   `environments/`: Environment-specific configurations (e.g., `prod`, `test`).
@@ -53,14 +58,45 @@ Use Terraform to create the virtual machines, networks, and storage. See the [Te
 
 Use Ansible to configure the services and applications on the provisioned VMs. See the [Ansible README](./ansible/README.md) for instructions on how to run the playbooks.
 
+#### Docker VMs
+
+```bash
+ansible-playbook ./ansible/playbooks/site.yml --ask-vault-pass
+```
+
+#### K3s Cluster
+
+Deploys K3s, hardens the node (SSH, UFW, fail2ban), installs [Tailscale](https://tailscale.com/) mesh VPN, and installs Helm:
+
+```bash
+ansible-playbook ./ansible/playbooks/k3s.yml -i ansible/inventory/homelab.yml
+```
+
+After the playbook completes, SSH into the K3s node and authenticate Tailscale:
+
+```bash
+sudo tailscale up
+```
+
+Then approve the device in your [Tailscale admin console](https://login.tailscale.com/admin/machines).
+
 ## Services
 
 The following services are managed by this repository:
+
+### Docker (Ansible)
 
 -   **Arr stack**: Radarr, Sonarr, Prowlarr, qBittorrent, Jellyseerr, Jellyfin, and FlareSolverr.
 -   **Monitoring**: Prometheus, Grafana, and cAdvisor.
 -   **Homepage**: A simple and clean homepage to access all your services.
 -   **Gluetun**: A VPN client container to route traffic through a VPN.
+
+### K3s (Kubernetes)
+
+-   **ClawdBot**: AI assistant deployed via the [OpenClaw K8s Operator](https://github.com/openclaw-rocks/k8s-operator).
+-   **Tailscale**: Mesh VPN for secure remote access to the cluster (installed via the `k3s-setup` Ansible role).
+
+> 📋 See the [Migration Plan](./kubernetes/MIGRATION-PLAN.md) and [Progress Tracker](./kubernetes/PROGRESS.md) for the Docker → K3s migration status.
 
 For more details on each service, see the corresponding Ansible role's README.
 
