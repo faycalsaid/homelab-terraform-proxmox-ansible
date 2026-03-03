@@ -25,7 +25,7 @@ ansible-galaxy collection install -r requirements.yml
 To run the main playbook that configures all the services, use the following command:
 
 ```bash
-ansible-playbook ./playbooks/site.yml --ask-vault-pass
+ansible-playbook ./playbooks/k3s.yml
 ```
 
 To run a specific playbook, for example `docker.yml`:
