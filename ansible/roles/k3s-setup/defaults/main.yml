@@ -1,0 +1,27 @@
+---
+# SSH hardening
+ssh_password_authentication: "no"
+ssh_permit_root_login: "no"
+
+# UFW firewall
+ufw_default_incoming: deny
+ufw_default_outgoing: allow
+
+# Tailscale (for remote access — does NOT restrict LAN SSH)
+tailscale_enabled: true
+tailscale_cidr: "100.64.0.0/10"
+
+# Ports to allow from Tailscale CIDR (for remote access when away from home)
+tailscale_allowed_ports:
+  - { port: 22, proto: tcp }
+  - { port: 80, proto: tcp }
+  - { port: 443, proto: tcp }
+  - { port: 6443, proto: tcp }  # K3s API server
+
+# fail2ban
+fail2ban_enabled: true
+
+# Helm
+helm_enabled: true
+helm_version: ""  # Empty = latest
+

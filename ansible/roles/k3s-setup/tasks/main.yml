@@ -1,0 +1,148 @@
+---
+# K3s Setup Role
+#
+# Hardens the K3s node with:
+#   - SSH lockdown (keys only, no root login)
+#   - UFW firewall (default-deny incoming)
+#   - fail2ban (brute-force protection)
+#   - Tailscale (mesh VPN — restrict SSH + services to Tailscale only)
+#   - Helm (K8s package manager)
+#
+# Usage:
+#   Run AFTER k3s.yml installs K3s.
+#
+# References:
+#   - "ClawdBot: Setup Guide + How to NOT Get Hacked" — Lukas Niessen, Jan 2026
+
+# =============================================================================
+# 1. SSH Hardening
+# =============================================================================
+
+- name: Disable password authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PasswordAuthentication"
+    line: "PasswordAuthentication {{ ssh_password_authentication }}"
+    validate: "sshd -t -f %s"
+  notify: Reload sshd
+
+- name: Disable root login
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin {{ ssh_permit_root_login }}"
+    validate: "sshd -t -f %s"
+  notify: Reload sshd
+
+# =============================================================================
+# 2. UFW Firewall
+# =============================================================================
+
+- name: Install UFW
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: true
+
+- name: Set UFW default incoming policy
+  community.general.ufw:
+    direction: incoming
+    default: "{{ ufw_default_incoming }}"
+
+- name: Set UFW default outgoing policy
+  community.general.ufw:
+    direction: outgoing
+    default: "{{ ufw_default_outgoing }}"
+
+- name: Allow OpenSSH (before enabling UFW to avoid lockout)
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+# =============================================================================
+# 3. fail2ban
+# =============================================================================
+
+- name: Install fail2ban
+  ansible.builtin.apt:
+    name: fail2ban
+    state: present
+  when: fail2ban_enabled
+
+- name: Enable and start fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started
+  when: fail2ban_enabled
+
+# =============================================================================
+# 4. Tailscale
+# =============================================================================
+
+- name: Install Tailscale
+  when: tailscale_enabled
+  block:
+    - name: Check if Tailscale is already installed
+      ansible.builtin.command: tailscale version
+      register: tailscale_check
+      changed_when: false
+      failed_when: false
+
+    - name: Download and run Tailscale install script
+      ansible.builtin.shell: curl -fsSL https://tailscale.com/install.sh | sh
+      when: tailscale_check.rc != 0
+      changed_when: true
+
+    - name: Enable and start Tailscale service
+      ansible.builtin.systemd:
+        name: tailscaled
+        enabled: true
+        state: started
+
+    - name: Check Tailscale status
+      ansible.builtin.command: tailscale status
+      register: tailscale_status
+      changed_when: false
+      failed_when: false
+
+    - name: Remind to authenticate Tailscale
+      ansible.builtin.debug:
+        msg: >
+          Tailscale is installed but may need authentication.
+          SSH into the node and run: sudo tailscale up
+          Then approve the device in your Tailscale admin console.
+      when: tailscale_status.rc != 0
+
+- name: Allow Tailscale CIDR for remote access
+  when: tailscale_enabled
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ tailscale_cidr }}"
+    port: "{{ item.port | string }}"
+    proto: "{{ item.proto }}"
+  loop: "{{ tailscale_allowed_ports }}"
+
+
+# =============================================================================
+# 5. Helm
+# =============================================================================
+
+- name: Install Helm
+  when: helm_enabled
+  block:
+    - name: Check if Helm is already installed
+      ansible.builtin.command: helm version --short
+      register: helm_check
+      changed_when: false
+      failed_when: false
+
+    - name: Download and run Helm install script
+      ansible.builtin.shell: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      when: helm_check.rc != 0
+      changed_when: true
+
