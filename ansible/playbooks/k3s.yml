@@ -4,7 +4,7 @@
 # then hardens the node (SSH, UFW, fail2ban, Tailscale) and installs Helm.
 #
 # Usage:
-#   ansible-playbook playbooks/k3s.yml -i inventory/homelab.yml
+#   ansible-playbook playbooks/k3s.yml
 #
 # Prerequisites:
 #   ansible-galaxy collection install -r requirements.yml

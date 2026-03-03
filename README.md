@@ -69,7 +69,7 @@ ansible-playbook ./ansible/playbooks/site.yml --ask-vault-pass
 Deploys K3s, hardens the node (SSH, UFW, fail2ban), installs [Tailscale](https://tailscale.com/) mesh VPN, and installs Helm:
 
 ```bash
-ansible-playbook ./ansible/playbooks/k3s.yml -i ansible/inventory/homelab.yml
+ansible-playbook ./ansible/playbooks/k3s.yml
 ```
 
 After the playbook completes, SSH into the K3s node and authenticate Tailscale:

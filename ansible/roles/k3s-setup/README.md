@@ -90,7 +90,7 @@ This role runs as part of the K3s playbook, after K3s installation:
 ```
 
 ```bash
-ansible-playbook playbooks/k3s.yml -i inventory/homelab.yml
+ansible-playbook playbooks/k3s.yml
 ```
 
 ## Post-Run Manual Step
