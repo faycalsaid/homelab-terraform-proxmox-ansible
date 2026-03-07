@@ -80,21 +80,38 @@ sudo tailscale up
 
 Then approve the device in your [Tailscale admin console](https://login.tailscale.com/admin/machines).
 
+## Hardware Specifications (Mini PC)
+
+- **CPU:** Intel® Core™ i7-7700T (4 Cores, 8 Threads)
+- **RAM:** 16GB DDR4 (Upgradable to 32GB)
+- **Storage:** 256GB NVMe SSD (Internal) + 300GB USB HDD (External)
+- **Network:** 1Gbps LAN + Tailscale Mesh VPN
+
+## Resource Allocation Strategy (16GB RAM Limit)
+
+To keep the system stable on 16GB of RAM, we use the following allocation:
+- **Proxmox OS:** ~1GB overhead
+- **Bastion VM (100):** 1GB (Docker + Jump box)
+- **Media VM (101):** 4GB (Arr Stack + Jellyfin)
+- **K3s Node (102):** 4GB (K8s Workloads)
+- **OpenClaw VM (103):** 2GB (Dedicated AI VM)
+- **Buffer:** 4GB (Free for Proxmox caching/bursts)
+
 ## Services
 
-The following services are managed by this repository:
+### Dedicated VM (Ansible)
+- **OpenClaw**: AI assistant running natively on Ubuntu 24.04 (VM 103).
 
-### Docker (Ansible)
+### Docker (Ansible - Migrating soon)
+- **Arr stack**: Radarr, Sonarr, Prowlarr, qBittorrent, Jellyseerr, Jellyfin.
+- **Monitoring**: Prometheus, Grafana.
+- **Homepage**: Dashboard.
 
--   **Arr stack**: Radarr, Sonarr, Prowlarr, qBittorrent, Jellyseerr, Jellyfin, and FlareSolverr.
--   **Monitoring**: Prometheus, Grafana, and cAdvisor.
--   **Homepage**: A simple and clean homepage to access all your services.
--   **Gluetun**: A VPN client container to route traffic through a VPN.
-
-### K3s (Kubernetes)
-
--   **ClawdBot**: AI assistant deployed via the [OpenClaw K8s Operator](https://github.com/openclaw-rocks/k8s-operator).
--   **Tailscale**: Mesh VPN for secure remote access to the cluster (installed via the `k3s-setup` Ansible role).
+### K3s (Kubernetes - Target)
+- **Homepage**: First app to be migrated (Manual YAML).
+- **Monitoring**: Prometheus/Grafana (Helm).
+- **Alerting**: Uptime Kuma + Alertmanager (Phase 6).
+- **Media**: Arr stack (Complex YAML/Sidecars).
 
 > 📋 See the [Migration Plan](./kubernetes/MIGRATION-PLAN.md) and [Progress Tracker](./kubernetes/PROGRESS.md) for the Docker → K3s migration status.
 
