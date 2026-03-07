@@ -72,6 +72,14 @@ Deploys K3s, hardens the node (SSH, UFW, fail2ban), installs [Tailscale](https:/
 ansible-playbook ./ansible/playbooks/k3s.yml
 ```
 
+#### OpenClaw VM
+
+Deploys the [OpenClaw](https://github.com/openclaw/openclaw) AI assistant on a dedicated Ubuntu 24.04 VM:
+
+```bash
+ansible-playbook ./ansible/playbooks/openclaw.yml
+```
+
 After the playbook completes, SSH into the K3s node and authenticate Tailscale:
 
 ```bash

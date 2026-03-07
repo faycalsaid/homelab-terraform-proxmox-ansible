@@ -34,6 +34,12 @@ To run a specific playbook, for example `docker.yml`:
 ansible-playbook ./playbooks/docker.yml
 ```
 
+To deploy OpenClaw (dedicated AI VM):
+
+```bash
+ansible-playbook ./playbooks/openclaw.yml
+```
+
 ### Managing Secrets with Vault
 
 To encrypt secrets, use `ansible-vault`. For example, to encrypt a string:

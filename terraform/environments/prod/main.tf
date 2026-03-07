@@ -20,8 +20,8 @@ module "bastion-ubuntu-prod" {
   source      = "../../modules/proxmox-vm-ubuntu-24-cloudinit"
   name        = "bastion-ubuntu-prod"
   target_node = local.target_node
-  cores       = 2
-  memory      = 2048
+  cores       = 1
+  memory      = 1024
   sockets     = 1
   disk_size   = "16G"
   ipconfig0   = "ip=192.168.1.160/24,gw=192.168.1.1"
@@ -42,7 +42,7 @@ module "media-ubuntu-prod" {
   name        = "media-ubuntu-prod"
   target_node = local.target_node
   cores       = 2
-  memory      = 6144
+  memory      = 4096
   sockets     = 1
   disk_size   = "16G"
   ipconfig0   = "ip=192.168.1.161/24,gw=192.168.1.1"
@@ -63,11 +63,30 @@ module "k3s-ubuntu-prod" {
   source      = "../../modules/proxmox-vm-ubuntu-24-cloudinit"
   name        = "k3s-ubuntu-prod"
   target_node = local.target_node
-  cores       = 4
-  memory      = 6144
+  cores       = 2
+  memory      = 4096
   sockets     = 1
   disk_size   = "64G"
   ipconfig0   = "ip=192.168.1.162/24,gw=192.168.1.1"
+
+  ansible_public_key = tls_private_key.ansible.public_key_openssh
+
+  server_admin_public_key = local.server_admin_public_key
+  pve_host                = local.pve_host
+  pve_user                = local.pve_user
+  pve_password            = local.pve_password
+}
+
+module "openclaw-ubuntu-prod" {
+  vmid        = 103
+  source      = "../../modules/proxmox-vm-ubuntu-24-cloudinit"
+  name        = "openclaw-ubuntu-prod"
+  target_node = local.target_node
+  cores       = 2
+  memory      = 4096
+  sockets     = 1
+  disk_size   = "32G"
+  ipconfig0   = "ip=192.168.1.163/24,gw=192.168.1.1"
 
   ansible_public_key = tls_private_key.ansible.public_key_openssh
 

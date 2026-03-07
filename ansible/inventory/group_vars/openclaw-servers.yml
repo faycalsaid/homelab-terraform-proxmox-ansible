@@ -1,0 +1,18 @@
+---
+# OpenClaw Role Configuration
+# These variables apply to all hosts in the 'openclaw-servers' group
+
+# Administrative access for the OpenClaw user
+openclaw_ssh_keys:
+  - "ssh-ed25519 Your Public Key john.doe@goodmail.com"
+
+# OpenClaw Settings
+openclaw_port: 3000
+openclaw_install_mode: "release"
+nodejs_version: "22.x"
+
+# Security & Connectivity
+tailscale_enabled: true
+
+# Operational
+ci_test: false
