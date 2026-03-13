@@ -66,6 +66,7 @@ resource "proxmox_vm_qemu" "vm-cloudinit" {
   scsihw           = "virtio-scsi-single"
   automatic_reboot = true
   tablet           = var.tablet
+  start_at_node_boot = true
 
   # Cloud-Init configuration
   ci_wait    = 60

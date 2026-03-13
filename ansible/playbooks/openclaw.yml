@@ -1,0 +1,6 @@
+---
+- name: Install and configure OpenClaw
+  hosts: openclaw-servers
+  become: true
+  roles:
+    - role: openclaw.installer.openclaw

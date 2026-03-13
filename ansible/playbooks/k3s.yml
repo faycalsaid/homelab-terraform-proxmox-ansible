@@ -1,12 +1,22 @@
 ---
 # K3s Cluster Deployment Playbook
-# Deploys a single-node K3s cluster using the official k3s-ansible collection
+# Deploys a single-node K3s cluster using the official k3s-ansible collection,
 #
 # Usage:
-#   ansible-playbook playbooks/k3s.yml -i inventory/homelab.yml
+#   ansible-playbook playbooks/k3s.yml
 #
 # Prerequisites:
 #   ansible-galaxy collection install -r requirements.yml
 
 - name: Deploy K3s cluster
-  ansible.builtin.import_playbook:  k3s.orchestration.site
+  ansible.builtin.import_playbook: k3s.orchestration.site
+
+//TODO
+# - name: Harden K3s cluster nodes
+#   hosts: k3s-cluster
+#   become: true
+#   roles:
+    # - role: baseline-security
+    # - role: tailscale
+    # - role: helm
+

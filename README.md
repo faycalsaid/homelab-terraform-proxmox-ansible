@@ -1,4 +1,4 @@
-![homelav-v2.drawio.png](homelav-v2.drawio.png)
+![homelav-v2.drawio.png](docs/homelab-v3.drawio.png)
 
 # Homelab
 
@@ -19,6 +19,7 @@ This repository contains the infrastructure as code (IaC) to deploy and manage a
 │   ├── inventory/
 │   ├── playbooks/
 │   └── ...
+├── kubernetes/
 ├── proxmox/
 │   └── README-Proxmox.md
 └── terraform/
@@ -31,6 +32,7 @@ This repository contains the infrastructure as code (IaC) to deploy and manage a
 
 -   `ansible/`: Contains Ansible playbooks and roles for configuration management.
     -   `roles/`: Each role is responsible for a specific service (e.g., `arr-stack`, `monitoring`). See the README in each role's directory for more details.
+-   `kubernetes/`: K3s manifests and migration documentation for the Docker → K3s migration.
 -   `terraform/`: Contains Terraform configurations for infrastructure provisioning.
     -   `modules/`: Reusable Terraform modules (e.g., for creating a Proxmox VM).
     -   `environments/`: Environment-specific configurations (e.g., `prod`, `test`).
@@ -53,14 +55,73 @@ Use Terraform to create the virtual machines, networks, and storage. See the [Te
 
 Use Ansible to configure the services and applications on the provisioned VMs. See the [Ansible README](./ansible/README.md) for instructions on how to run the playbooks.
 
+#### Docker VMs
+
+```bash
+ansible-playbook ./ansible/playbooks/site.yml --ask-vault-pass
+```
+
+#### K3s Cluster
+
+Deploys a single-node K3s cluster using the `k3s.orchestration` collection. (Hardening, Tailscale, and Helm installation are currently planned but not yet implemented in the playbook):
+
+```bash
+ansible-playbook ./ansible/playbooks/k3s.yml
+```
+
+#### OpenClaw VM
+
+Deploys the [OpenClaw](https://github.com/openclaw/openclaw) AI assistant on a dedicated Ubuntu 24.04 VM using the [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) collection:
+
+```bash
+ansible-playbook ./ansible/playbooks/openclaw.yml
+```
+
+After the playbook completes, SSH into the **OpenClaw VM** and authenticate Tailscale:
+
+```bash
+sudo tailscale up
+```
+
+Then, run the onboarding to finish the setup and install the daemon:
+
+```bash
+sudo su - openclaw
+openclaw onboard --install-daemon
+```
+
+## Hardware Specifications (Mini PC)
+
+- **CPU:** Intel® Core™ i7-7700T (4 Cores, 8 Threads)
+- **RAM:** 16GB DDR4 (Upgradable to 32GB)
+- **Storage:** 256GB NVMe SSD (Internal) + 300GB USB HDD (External)
+- **Network:** 1Gbps LAN + Tailscale Mesh VPN
+
+## Resource Allocation Strategy (16GB RAM Limit)
+
+To keep the system stable on 16GB of RAM, we use the following allocation:
+- **Proxmox OS:** ~1GB overhead
+- **Bastion VM (100):** 1GB (Docker + Jump box)
+- **Media VM (101):** 4GB (Arr Stack + Jellyfin)
+- **K3s Node (102):** 4GB (K8s Workloads)
+- **OpenClaw VM (103):** 2GB (Dedicated AI VM)
+- **Buffer:** 4GB (Free for Proxmox caching/bursts)
+
 ## Services
 
-The following services are managed by this repository:
+### Dedicated VM (Ansible)
+- **OpenClaw**: AI assistant running natively on Ubuntu 24.04 (VM 103).
 
--   **Arr stack**: Radarr, Sonarr, Prowlarr, qBittorrent, Jellyseerr, Jellyfin, and FlareSolverr.
--   **Monitoring**: Prometheus, Grafana, and cAdvisor.
--   **Homepage**: A simple and clean homepage to access all your services.
--   **Gluetun**: A VPN client container to route traffic through a VPN.
+### Docker (Ansible - Migrating soon)
+- **Arr stack**: Radarr, Sonarr, Prowlarr, qBittorrent, Jellyseerr, Jellyfin.
+- **Monitoring**: Prometheus, Grafana.
+- **Homepage**: Dashboard.
+
+### K3s (Kubernetes - Target)
+- **Homepage**: Dashboard.
+- **Monitoring**: Prometheus/Grafana (Helm).
+- **Alerting**: Uptime Kuma + Alertmanager.
+- **Media**: Arr stack.
 
 For more details on each service, see the corresponding Ansible role's README.
 

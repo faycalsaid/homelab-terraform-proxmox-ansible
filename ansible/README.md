@@ -25,13 +25,19 @@ ansible-galaxy collection install -r requirements.yml
 To run the main playbook that configures all the services, use the following command:
 
 ```bash
-ansible-playbook ./playbooks/site.yml --ask-vault-pass
+ansible-playbook ./playbooks/k3s.yml
 ```
 
 To run a specific playbook, for example `docker.yml`:
 
 ```bash
 ansible-playbook ./playbooks/docker.yml
+```
+
+To deploy OpenClaw (dedicated AI VM):
+
+```bash
+ansible-playbook ./playbooks/openclaw.yml
 ```
 
 ### Managing Secrets with Vault
