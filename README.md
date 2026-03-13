@@ -1,4 +1,4 @@
-![homelav-v2.drawio.png](homelav-v2.drawio.png)
+![homelav-v2.drawio.png](docs/homelab-v3.drawio.png)
 
 # Homelab
 
@@ -15,14 +15,11 @@ This repository contains the infrastructure as code (IaC) to deploy and manage a
 │   │   ├── gluetun/
 │   │   ├── homepage/
 │   │   ├── install-docker/
-│   │   ├── k3s-setup/
 │   │   └── monitoring/
 │   ├── inventory/
 │   ├── playbooks/
 │   └── ...
 ├── kubernetes/
-│   ├── MIGRATION-PLAN.md
-│   └── PROGRESS.md
 ├── proxmox/
 │   └── README-Proxmox.md
 └── terraform/
@@ -66,7 +63,7 @@ ansible-playbook ./ansible/playbooks/site.yml --ask-vault-pass
 
 #### K3s Cluster
 
-Deploys K3s, hardens the node (SSH, UFW, fail2ban), installs [Tailscale](https://tailscale.com/) mesh VPN, and installs Helm:
+Deploys a single-node K3s cluster using the `k3s.orchestration` collection. (Hardening, Tailscale, and Helm installation are currently planned but not yet implemented in the playbook):
 
 ```bash
 ansible-playbook ./ansible/playbooks/k3s.yml
@@ -74,19 +71,24 @@ ansible-playbook ./ansible/playbooks/k3s.yml
 
 #### OpenClaw VM
 
-Deploys the [OpenClaw](https://github.com/openclaw/openclaw) AI assistant on a dedicated Ubuntu 24.04 VM:
+Deploys the [OpenClaw](https://github.com/openclaw/openclaw) AI assistant on a dedicated Ubuntu 24.04 VM using the [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) collection:
 
 ```bash
 ansible-playbook ./ansible/playbooks/openclaw.yml
 ```
 
-After the playbook completes, SSH into the K3s node and authenticate Tailscale:
+After the playbook completes, SSH into the **OpenClaw VM** and authenticate Tailscale:
 
 ```bash
 sudo tailscale up
 ```
 
-Then approve the device in your [Tailscale admin console](https://login.tailscale.com/admin/machines).
+Then, run the onboarding to finish the setup and install the daemon:
+
+```bash
+sudo su - openclaw
+openclaw onboard --install-daemon
+```
 
 ## Hardware Specifications (Mini PC)
 
@@ -116,12 +118,10 @@ To keep the system stable on 16GB of RAM, we use the following allocation:
 - **Homepage**: Dashboard.
 
 ### K3s (Kubernetes - Target)
-- **Homepage**: First app to be migrated (Manual YAML).
+- **Homepage**: Dashboard.
 - **Monitoring**: Prometheus/Grafana (Helm).
-- **Alerting**: Uptime Kuma + Alertmanager (Phase 6).
-- **Media**: Arr stack (Complex YAML/Sidecars).
-
-> 📋 See the [Migration Plan](./kubernetes/MIGRATION-PLAN.md) and [Progress Tracker](./kubernetes/PROGRESS.md) for the Docker → K3s migration status.
+- **Alerting**: Uptime Kuma + Alertmanager.
+- **Media**: Arr stack.
 
 For more details on each service, see the corresponding Ansible role's README.
 
