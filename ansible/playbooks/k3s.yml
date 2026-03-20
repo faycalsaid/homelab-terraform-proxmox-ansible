@@ -11,12 +11,12 @@
 - name: Deploy K3s cluster
   ansible.builtin.import_playbook: k3s.orchestration.site
 
-//TODO
+# //TODO Harden K3s cluster nodes
 # - name: Harden K3s cluster nodes
 #   hosts: k3s-cluster
 #   become: true
 #   roles:
-    # - role: baseline-security
-    # - role: tailscale
-    # - role: helm
+#     - role: baseline-security
+#     - role: tailscale
+#     - role: helm
 
