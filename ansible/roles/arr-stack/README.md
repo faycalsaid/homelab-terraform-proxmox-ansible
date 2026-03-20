@@ -1,5 +1,7 @@
 # Ansible Role: ARR Media Stack
 
+> **LEGACY — Docker only.** This role is no longer used for new deployments. The Arr stack has been migrated to Kubernetes (K3s). See `kubernetes/arr/` and `MIGRATION-PLAN.md`.
+
 This role deploys and configures the full ARR media automation stack using Docker.
 
 ## Table of Contents

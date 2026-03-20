@@ -36,27 +36,6 @@ module "bastion-ubuntu-prod" {
   pve_password            = local.pve_password
 }
 
-module "media-ubuntu-prod" {
-  vmid        = 101
-  source      = "../../modules/proxmox-vm-ubuntu-24-cloudinit"
-  name        = "media-ubuntu-prod"
-  target_node = local.target_node
-  cores       = 2
-  memory      = 4096
-  sockets     = 1
-  disk_size   = "16G"
-  ipconfig0   = "ip=192.168.1.161/24,gw=192.168.1.1"
-
-  ansible_public_key = tls_private_key.ansible.public_key_openssh
-
-  server_admin_public_key = local.server_admin_public_key
-  pve_host                = local.pve_host
-  pve_user                = local.pve_user
-  pve_password            = local.pve_password
-
-  extra_disk_storage = "vm-storage-new" # Name of the Proxmox storage
-  extra_disk_size    = "300G"
-}
 
 module "k3s-ubuntu-prod" {
   vmid        = 102
@@ -75,6 +54,9 @@ module "k3s-ubuntu-prod" {
   pve_host                = local.pve_host
   pve_user                = local.pve_user
   pve_password            = local.pve_password
+
+  extra_disk_storage = "vm-storage-new"
+  extra_disk_size    = "470G"
 }
 
 module "openclaw-ubuntu-prod" {

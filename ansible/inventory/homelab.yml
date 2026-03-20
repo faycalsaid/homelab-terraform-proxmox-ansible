@@ -6,13 +6,6 @@ all:
           ansible_host: 192.168.1.160
           ansible_user: ansible
           ansible_become: true
-    media-servers:
-      hosts:
-        media-01:
-          ansible_host: 192.168.1.161
-          ansible_user: ansible
-          ansible_become: true
-
     # K3s cluster definition (required by k3s-ansible collection)
     k3s-cluster:
       children:
