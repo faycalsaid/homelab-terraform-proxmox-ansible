@@ -36,6 +36,8 @@ spec:
                   key: WIREGUARD_PRIVATE_KEY
             - name: WIREGUARD_ADDRESSES
               value: "10.64.34.155/32"
+            - name: FIREWALL_INPUT_PORTS
+              value: "8081"
           volumeMounts:
             - name: tun-device
               mountPath: /dev/net/tun
