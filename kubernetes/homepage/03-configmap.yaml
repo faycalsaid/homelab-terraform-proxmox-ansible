@@ -31,20 +31,57 @@ data:
               url: https://192.168.1.151:8006
               username: api@pam!homepage
               password: {{HOMEPAGE_VAR_PROXMOX_PW}}
-    - My First Group:
-        - My First Service:
-            href: http://localhost/
-            description: Homepage is awesome
-
-    - My Second Group:
-        - My Second Service:
-            href: http://localhost/
-            description: Homepage is the best
-
-    - My Third Group:
-        - My Third Service:
-            href: http://localhost/
-            description: Homepage is 😎
+    - Media:
+        - Jellyfin:
+            icon: jellyfin.svg
+            href: http://jellyfin.my.network
+            description: Media server
+            # widget:
+            #   type: jellyfin
+            #   url: http://jellyfin.media.svc.cluster.local:8096
+            #   key: <jellyfin-api-key>
+        - Jellyseerr:
+            icon: jellyseerr.svg
+            href: http://jellyseerr.my.network
+            description: Media requests
+            # widget:
+            #   type: jellyseerr
+            #   url: http://jellyseerr.media.svc.cluster.local:5055
+            #   key: <jellyseerr-api-key>
+    - Arr Stack:
+        - Radarr:
+            icon: radarr.svg
+            href: http://radarr.my.network
+            description: Movies
+            # widget:
+            #   type: radarr
+            #   url: http://radarr.media.svc.cluster.local:7878
+            #   key: <radarr-api-key>
+        - Sonarr:
+            icon: sonarr.svg
+            href: http://sonarr.my.network
+            description: TV shows
+            # widget:
+            #   type: sonarr
+            #   url: http://sonarr.media.svc.cluster.local:8989
+            #   key: <sonarr-api-key>
+        - Prowlarr:
+            icon: prowlarr.svg
+            href: http://prowlarr.my.network
+            description: Indexers
+            # widget:
+            #   type: prowlarr
+            #   url: http://prowlarr.media.svc.cluster.local:9696
+            #   key: <prowlarr-api-key>
+        - qBittorrent:
+            icon: qbittorrent.svg
+            href: http://qbittorrent.my.network
+            description: Torrent client
+            # widget:
+            #   type: qbittorrent
+            #   url: http://qbittorrent.media.svc.cluster.local:8081
+            #   username: <username>
+            #   password: <password>
   widgets.yaml: |
     - kubernetes:
         cluster:

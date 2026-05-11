@@ -1,5 +1,7 @@
 # Ansible Role: Gluetun
 
+> **LEGACY — Docker only.** This role is no longer used for new deployments. Gluetun has been migrated to Kubernetes (K3s) as a sidecar container alongside qBittorrent. See `kubernetes/arr/04-qbittorrent-deployment.yaml` and `MIGRATION-PLAN.md`.
+
 This role deploys and configures the [Gluetun VPN container](https://github.com/qdm12/gluetun) using Docker.
 
 This role creates the container with the appropriate VPN settings and exposes ports for other services (e.g., the ARR stack).

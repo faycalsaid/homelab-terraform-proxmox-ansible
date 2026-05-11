@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: arr-data-pv
+spec:
+  capacity:
+    storage: 470Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: "" # empty string = opt out of dynamic provisioning, required for static PV binding
+  hostPath:
+    path: /opt/data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - ubuntu
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arr-data-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "" # must match the PV's storageClassName exactly (both empty) to bind
+  volumeName: arr-data-pv
+  resources:
+    requests:
+      storage: 470Gi

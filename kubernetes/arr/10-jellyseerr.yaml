@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyseerr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jellyseerr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jellyseerr
+    spec:
+      containers:
+        - name: jellyseerr
+          image: fallenbagel/jellyseerr:latest
+          env:
+            - name: PUID
+              value: "2000"
+            - name: PGID
+              value: "2000"
+          ports:
+            - name: http
+              containerPort: 5055
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyseerr-config-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyseerr
+spec:
+  selector:
+    app.kubernetes.io/name: jellyseerr
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5055
+      targetPort: http
+      protocol: TCP
